@@ -9,7 +9,14 @@ license = "MIT"
 [dependencies]
 base64 = "0.22.1"
 derive = { workspace = true }
+log = "0.4.22"
 
 [dev-dependencies]
+anyhow = { workspace = true }
 thiserror = { workspace = true }
 http = { workspace = true }
+backtrace = "0.3.73"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+axum = { version = "0.7.5", features = ["http2", "query", "tracing"] }
+tokio = { version = "1.38.0", features = ["rt", "rt-multi-thread", "macros"] }

@@ -1,5 +1,12 @@
-use code::ToErrorInfo;
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use axum::Router;
+use backtrace::Backtrace;
 use thiserror::Error;
+use tokio::net::TcpListener;
+use tracing::{error, info};
+
+use code::ToErrorInfo;
 
 #[allow(unused)]
 #[derive(Debug, Error, ToErrorInfo)]
@@ -25,9 +32,40 @@ enum BusinessError {
     Unknown,
 }
 
-fn main() {
-    let err = BusinessError::Unknown;
-    let info = err.to_error_info();
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
 
-    println!("{:?}", info);
+    let app = Router::new().route("/", get(handle_index));
+    let addr = "0.0.0.0:8080";
+
+    info!("Listening on {}", addr);
+    let listener = TcpListener::bind(addr).await?;
+
+    axum::serve(listener, app.into_make_service()).await?;
+
+    Ok(())
+}
+
+async fn handle_index() -> Result<&'static str, BusinessError> {
+    let bt = Backtrace::new();
+    Err(BusinessError::InternalError(format!("{bt:?}")))
+}
+
+impl IntoResponse for BusinessError {
+    fn into_response(self) -> Response {
+        let info = self.to_error_info();
+        let status = info.code;
+
+        if status.is_server_error() {
+            error!("{:?}", info);
+        } else {
+            info!("{:?}", info);
+        }
+
+        Response::builder()
+            .status(status)
+            .body(info.to_string().into())
+            .unwrap()
+    }
 }

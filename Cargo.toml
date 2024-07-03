@@ -1,11 +1,10 @@
-[package]
-name = "error-info"
-version = "0.1.0"
-edition = "2021"
-license = "MIT"
+[workspace]
+members = ["code", "derive"]
+resolver = "2"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-
-[dev-dependencies]
+[workspace.dependencies]
+code = { path = "code" }
+derive = { path = "derive" }
+anyhow = "1"
+thiserror = "1"
+http = "1"
